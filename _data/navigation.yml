@@ -1,115 +1,142 @@
 header:
-      - title : GamePlay
-            url:/archive.html
+      # - title : GamePlay
+      #       url:/archive.html
 
-      - title : 思路
-            url:/archive.html
+      # - title : 思路
+      #       url:/archive.html
 
-      - title : 问题记录
-            url:/archive.html
+      # - title : 问题记录
+      #       url:/archive.html
 
-      - title : AboutMe
-            url:/about.html
-#      - titles:
-#      # @start locale config
-#      en      : &EN       Expirence
-#      en-GB   : *EN
-#      en-US   : *EN
-#      en-CA   : *EN
-#      en-AU   : *EN
-#      zh-Hans : &ZH_HANS  问题记录
-#      zh      : *ZH_HANS
-#      zh-CN   : *ZH_HANS
-#      zh-SG   : *ZH_HANS
-#      zh-Hant : &ZH_HANT  問題記錄
-#      zh-TW   : *ZH_HANT
-#      zh-HK   : *ZH_HANT
-#      ko      : &KO     
-#      ko-KR   : *KO
-#      fr      : &FR     
-#      fr-BE   : *FR
-#      fr-CA   : *FR
-#      fr-CH   : *FR
-#      fr-FR   : *FR
-#      fr-LU   : *FR
-#      tr      : &TR      
-#      # @end locale config
-#      url: /archive.html
-#
-#      - titles:
-#      # @start locale config
-#      en      : &EN       
-#      en-GB   : *EN
-#      en-US   : *EN
-#      en-CA   : *EN
-#      en-AU   : *EN
-#      zh-Hans : &ZH_HANS  思路
-#      zh      : *ZH_HANS
-#      zh-CN   : *ZH_HANS
-#      zh-SG   : *ZH_HANS
-#      zh-Hant : &ZH_HANT  思路
-#      zh-TW   : *ZH_HANT
-#      zh-HK   : *ZH_HANT
-#      ko      : &KO     
-#      ko-KR   : *KO
-#      fr      : &FR     
-#      fr-BE   : *FR
-#      fr-CA   : *FR
-#      fr-CH   : *FR
-#      fr-FR   : *FR
-#      fr-LU   : *FR
-#      tr      : &TR      
-#      # @end locale config
-#      url: /archive.html
-#
-#      - titles:
-#            # @start locale config
-#            en      : &EN       GamePlay
-#            en-GB   : *EN
-#            en-US   : *EN
-#            en-CA   : *EN
-#            en-AU   : *EN
-#            zh-Hans : &ZH_HANS  GamePlay
-#            zh      : *ZH_HANS
-#            zh-CN   : *ZH_HANS
-#            zh-SG   : *ZH_HANS
-#            zh-Hant : &ZH_HANT  GamePlay
-#            zh-TW   : *ZH_HANT
-#            zh-HK   : *ZH_HANT
-#            ko      : &KO       
-#            ko-KR   : *KO
-#            fr      : &FR       
-#            fr-BE   : *FR
-#            fr-CA   : *FR
-#            fr-CH   : *FR
-#            fr-FR   : *FR
-#            fr-LU   : *FR
-#            tr      : &TR       
-#            # @end locale config
-#      url: /archive.html
-#
-#  - titles:
-#      # @start locale config
-#      en      : &EN       About
-#      en-GB   : *EN
-#      en-US   : *EN
-#      en-CA   : *EN
-#      en-AU   : *EN
-#      zh-Hans : &ZH_HANS  关于
-#      zh      : *ZH_HANS
-#      zh-CN   : *ZH_HANS
-#      zh-SG   : *ZH_HANS
-#      zh-Hant : &ZH_HANT  關於
-#      zh-TW   : *ZH_HANT
-#      zh-HK   : *ZH_HANT
-#      ko      : &KO       소개
-#      ko-KR   : *KO
-#      fr      : &FR       À propos
-#      fr-BE   : *FR
-#      fr-CA   : *FR
-#      fr-CH   : *FR
-#      fr-FR   : *FR
-#      fr-LU   : *FR
-#      tr      : &TR       Hakkında
-#      # @end locale config
-#    url: /about.html
+      # - title : AboutMe
+      #       url:/about.html
+
+     - titles:
+     # @start locale config
+     en      : &EN       archvie
+     en-GB   : *EN
+     en-US   : *EN
+     en-CA   : *EN
+     en-AU   : *EN
+     zh-Hans : &ZH_HANS  文章
+     zh      : *ZH_HANS
+     zh-CN   : *ZH_HANS
+     zh-SG   : *ZH_HANS
+     zh-Hant : &ZH_HANT  
+     zh-TW   : *ZH_HANT
+     zh-HK   : *ZH_HANT
+     ko      : &KO     
+     ko-KR   : *KO
+     fr      : &FR     
+     fr-BE   : *FR
+     fr-CA   : *FR
+     fr-CH   : *FR
+     fr-FR   : *FR
+     fr-LU   : *FR
+     tr      : &TR      
+     # @end locale config
+     url: /archive.html
+
+     # - titles:
+     # # @start locale config
+     # en      : &EN       Expirence
+     # en-GB   : *EN
+     # en-US   : *EN
+     # en-CA   : *EN
+     # en-AU   : *EN
+     # zh-Hans : &ZH_HANS  问题记录
+     # zh      : *ZH_HANS
+     # zh-CN   : *ZH_HANS
+     # zh-SG   : *ZH_HANS
+     # zh-Hant : &ZH_HANT  問題記錄
+     # zh-TW   : *ZH_HANT
+     # zh-HK   : *ZH_HANT
+     # ko      : &KO     
+     # ko-KR   : *KO
+     # fr      : &FR     
+     # fr-BE   : *FR
+     # fr-CA   : *FR
+     # fr-CH   : *FR
+     # fr-FR   : *FR
+     # fr-LU   : *FR
+     # tr      : &TR      
+     # # @end locale config
+     # url: /archive.html
+
+     # - titles:
+     # # @start locale config
+     # en      : &EN       
+     # en-GB   : *EN
+     # en-US   : *EN
+     # en-CA   : *EN
+     # en-AU   : *EN
+     # zh-Hans : &ZH_HANS  思路
+     # zh      : *ZH_HANS
+     # zh-CN   : *ZH_HANS
+     # zh-SG   : *ZH_HANS
+     # zh-Hant : &ZH_HANT  思路
+     # zh-TW   : *ZH_HANT
+     # zh-HK   : *ZH_HANT
+     # ko      : &KO     
+     # ko-KR   : *KO
+     # fr      : &FR     
+     # fr-BE   : *FR
+     # fr-CA   : *FR
+     # fr-CH   : *FR
+     # fr-FR   : *FR
+     # fr-LU   : *FR
+     # tr      : &TR      
+     # # @end locale config
+     # url: /archive.html
+
+     # - titles:
+     #       # @start locale config
+     #       en      : &EN       GamePlay
+     #       en-GB   : *EN
+     #       en-US   : *EN
+     #       en-CA   : *EN
+     #       en-AU   : *EN
+     #       zh-Hans : &ZH_HANS  GamePlay
+     #       zh      : *ZH_HANS
+     #       zh-CN   : *ZH_HANS
+     #       zh-SG   : *ZH_HANS
+     #       zh-Hant : &ZH_HANT  GamePlay
+     #       zh-TW   : *ZH_HANT
+     #       zh-HK   : *ZH_HANT
+     #       ko      : &KO       
+     #       ko-KR   : *KO
+     #       fr      : &FR       
+     #       fr-BE   : *FR
+     #       fr-CA   : *FR
+     #       fr-CH   : *FR
+     #       fr-FR   : *FR
+     #       fr-LU   : *FR
+     #       tr      : &TR       
+     #       # @end locale config
+     # url: /archive.html
+
+ - titles:
+     # @start locale config
+     en      : &EN       About
+     en-GB   : *EN
+     en-US   : *EN
+     en-CA   : *EN
+     en-AU   : *EN
+     zh-Hans : &ZH_HANS  关于
+     zh      : *ZH_HANS
+     zh-CN   : *ZH_HANS
+     zh-SG   : *ZH_HANS
+     zh-Hant : &ZH_HANT  關於
+     zh-TW   : *ZH_HANT
+     zh-HK   : *ZH_HANT
+     ko      : &KO       소개
+     ko-KR   : *KO
+     fr      : &FR       À propos
+     fr-BE   : *FR
+     fr-CA   : *FR
+     fr-CH   : *FR
+     fr-FR   : *FR
+     fr-LU   : *FR
+     tr      : &TR       Hakkında
+     # @end locale config
+   url: /about.html
