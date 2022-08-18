@@ -8,7 +8,7 @@ header:
       - title : 问题记录
             url:/archive.html
 
-      -title : AboutMe
+      - title : AboutMe
             url:/about.html
 #      - titles:
 #      # @start locale config
