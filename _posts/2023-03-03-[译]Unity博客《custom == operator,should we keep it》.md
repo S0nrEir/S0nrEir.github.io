@@ -129,3 +129,5 @@ Debug.Log(temp == null);//false，可能因为调用的并不是DestroyImmediate
 ````
 
 看来Unity始终是没有解决这个问题啊。。。更别说Object.destroyed了
+
+不过当然，对于稍有经验的Unity开发者，在一个Object被Destroy后都不应该继续使用它，所以一般也无需特别关注
