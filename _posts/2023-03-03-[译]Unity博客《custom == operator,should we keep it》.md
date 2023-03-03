@@ -119,13 +119,13 @@ Turns out two of our own engineers missed that the null check was more expensive
 ```c#
 var temp = new GameObject("test_object");
 Object.DestroyImmediate( temp );
-Debug.Log(temp == null);//true
+Debug.Log(temp == null);//true，temp被GC掉了
 ```
 
 ````c#
 var temp = new GameObject("test_object");
 Object.Destroy( temp );
-Debug.Log(temp == null);//这里返回false，可能因为调用的并不是DestroyImmediate，temp在打印前被GC掉了
+Debug.Log(temp == null);//false，可能因为调用的并不是DestroyImmediate，temp在打印前没有被GC处理
 ````
 
 看来Unity始终是没有解决这个问题啊。。。更别说Object.destroyed了
