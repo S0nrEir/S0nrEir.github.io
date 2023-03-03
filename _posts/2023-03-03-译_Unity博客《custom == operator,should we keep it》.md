@@ -11,21 +11,21 @@ tags: ["原理","GC"]
 
 原文地址：[**Custom == operator, should we keep it?**](https://blog.unity.com/technology/custom-operator-should-we-keep-it)
 
-When you do this in Unity:
+> When you do this in Unity:
 
 ```c#
 if (myGameObject == null) {}
 ```
 
-*Unity does something special with the == operator. Instead of what most people would expect, we have a special implementation of the == operator.*
+*>Unity does something special with the == operator. Instead of what most people would expect, we have a special implementation of the == operator.*
 
-*This serves two purposes:*
+> *This serves two purposes:*
 
-1) *When a MonoBehaviour has fields, in the editor only**[1]**, we do not set those fields to "real null", but to a "fake null" object. Our custom == operator is able to check if something is one of these fake null objects, and behaves accordingly. While this is an exotic setup, it allows us to store information in the fake null object that gives you more contextual information when you invoke a method on it, or when you ask the object for a property. Without this trick, you would only get a NullReferenceException, a stack trace, but you would have no idea which GameObject had the MonoBehaviour that had the field that was null. With this trick, we can highlight the GameObject in the inspector, and can also give you more direction: "looks like you are accessing a non initialised field in this MonoBehaviour over here, use the inspector to make the field point to something".*
+1) >*When a MonoBehaviour has fields, in the editor only**[1]**, we do not set those fields to "real null", but to a "fake null" object. Our custom == operator is able to check if something is one of these fake null objects, and behaves accordingly. While this is an exotic setup, it allows us to store information in the fake null object that gives you more contextual information when you invoke a method on it, or when you ask the object for a property. Without this trick, you would only get a NullReferenceException, a stack trace, but you would have no idea which GameObject had the MonoBehaviour that had the field that was null. With this trick, we can highlight the GameObject in the inspector, and can also give you more direction: "looks like you are accessing a non initialised field in this MonoBehaviour over here, use the inspector to make the field point to something".*
 
-2) *purpose two is a little bit more complicated.*
+2) >*purpose two is a little bit more complicated.*
 
-   *When you get a c# object of type "GameObject"**[2]**, it contains almost nothing. this is because Unity is a C/C++ engine. All the actual information about this GameObject (its name, the list of components it has, its HideFlags, etc) lives in the c++ side. The only thing that the c# object has is a pointer to the native object. We call these c# objects "wrapper objects". The lifetime of these c++ objects like GameObject and everything else that derives from UnityEngine.Object is explicitly managed. These objects get destroyed when you load a new scene. Or when you call `Object.Destroy(myObject);` on them. Lifetime of c# objects gets managed the c# way, with a garbage collector. This means that it's possible to have a c# wrapper object that still exists, that wraps a c++ object that has already been destroyed. If you compare this object to null, our custom == operator will return "true" in this case, even though the actual c# variable is in reality not really null.*
+   > *When you get a c# object of type "GameObject"**[2]**, it contains almost nothing. this is because Unity is a C/C++ engine. All the actual information about this GameObject (its name, the list of components it has, its HideFlags, etc) lives in the c++ side. The only thing that the c# object has is a pointer to the native object. We call these c# objects "wrapper objects". The lifetime of these c++ objects like GameObject and everything else that derives from UnityEngine.Object is explicitly managed. These objects get destroyed when you load a new scene. Or when you call `Object.Destroy(myObject);` on them. Lifetime of c# objects gets managed the c# way, with a garbage collector. This means that it's possible to have a c# wrapper object that still exists, that wraps a c++ object that has already been destroyed. If you compare this object to null, our custom == operator will return "true" in this case, even though the actual c# variable is in reality not really null.*
 
 当你在Unity中这样做：
 
@@ -45,16 +45,16 @@ Unity对==操作符做了一些特殊的事，并不如人们期待的那样，�
 
 ------
 
-*While these two use cases are pretty reasonable, the custom null check also comes with a bunch of downsides.*
+> *While these two use cases are pretty reasonable, the custom null check also comes with a bunch of downsides.*
 
 这两种理由都是很合理的，但自定义的判空检查也带来了一些问题。
 
 ------
 
-- *It is counterintuitive.*
-- *Comparing two UnityEngine.Objects to eachother or to null is slower than you'd expect.*
-- *The custom ==operator is not thread safe, so you cannot compare objects off the main thread. (this one we could fix).*
-- *It behaves inconsistently with the ?? operator, which also does a null check, but that one does a pure c# null check, and cannot be bypassed to call our custom null check.*
+- > *It is counterintuitive.*
+- > *Comparing two UnityEngine.Objects to eachother or to null is slower than you'd expect.*
+- > *The custom ==operator is not thread safe, so you cannot compare objects off the main thread. (this one we could fix).*
+- > *It behaves inconsistently with the ?? operator, which also does a null check, but that one does a pure c# null check, and cannot be bypassed to call our custom null check.*
 
 - 它是反直觉的。
 - 让两个派生自UnityEngine.Obejcts的对象互相比较或是让他们检查是否为空，比预想的要慢（指性能方面）。
@@ -63,37 +63,37 @@ Unity对==操作符做了一些特殊的事，并不如人们期待的那样，�
 
 ------
 
-*Going over all these upsides and downsides, if we were building our API from scratch, we would have chosen not to do a custom null check, but instead have a myObject.destroyed property you can use to check if the object is dead or not, and just live with the fact that we can no longer give better error messages in case you do invoke a function on a field that is null.*
+> *Going over all these upsides and downsides, if we were building our API from scratch, we would have chosen not to do a custom null check, but instead have a myObject.destroyed property you can use to check if the object is dead or not, and just live with the fact that we can no longer give better error messages in case you do invoke a function on a field that is null.*
 
 综合考虑这些问题，如果我们从头构建API，可能不会选择使用自定义的判空检查，而是使用myObject.destroyed这样的属性取而代之这样你就可以检查对象是否已经销毁，并且接受一个事实：当你调用一个空字段上的方法时，Unity没办法给你更好的错误信息。（不利于debug）
 
 ------
 
-*What we're considering is wether or not we should change this. Which is a step in our never ending quest to find the right balance between "fix and cleanup old things" and "do not break old projects". In this case we're wondering what you think. For Unity5 we have been working on the ability for Unity to automatically update your scripts (more on this in a subsequent blogpost). Unfortunately, we would be unable to automatically upgrade your scripts for this case. (because we cannot distinguish between "this is an old script that actually wants the old behaviour", and "this is a new script that actually wants the new behaviour").*
+> *What we're considering is wether or not we should change this. Which is a step in our never ending quest to find the right balance between "fix and cleanup old things" and "do not break old projects". In this case we're wondering what you think. For Unity5 we have been working on the ability for Unity to automatically update your scripts (more on this in a subsequent blogpost). Unfortunately, we would be unable to automatically upgrade your scripts for this case. (because we cannot distinguish between "this is an old script that actually wants the old behaviour", and "this is a new script that actually wants the new behaviour").*
 
 我们正在考虑是改变这一点，我们一直在“修复和清理旧代码”和“不要破坏老代码”之间平衡。（想改但不好改）
 
 ------
 
-*We're leaning towards "remove the custom == operator", but are hesitant, because it would change the meaning of all the null checks your projects currently do. And for cases where the object is not "really null" but a destroyed object, a nullcheck used to return true, and will if we change this it will return false. If you wanted to check if your variable was pointing to a destroyed object, you'd need to change the code to check "if (myObject.destroyed) {}" instead. We're a bit nervous about that, as if you haven't read this blogpost, and most likely if you have, it's very easy to not realise this changed behaviour, especially since most people do not realise that this custom null check exists at all.**[3]***
+> *We're leaning towards "remove the custom == operator", but are hesitant, because it would change the meaning of all the null checks your projects currently do. And for cases where the object is not "really null" but a destroyed object, a nullcheck used to return true, and will if we change this it will return false. If you wanted to check if your variable was pointing to a destroyed object, you'd need to change the code to check "if (myObject.destroyed) {}" instead. We're a bit nervous about that, as if you haven't read this blogpost, and most likely if you have, it's very easy to not realise this changed behaviour, especially since most people do not realise that this custom null check exists at all.**[3]***
 
 我们倾向于移除自定义的==运算符，但是犹豫，因为这可能会改变你当前项目内所有判空检查的含义。比如一个并不是真的null但是在C++层已经被销毁的对象，做空检查会返回true，改了的话会返回false，如果你想检查变量是否指向一个被销毁的对象，你需要改用"if (myObject.destroyed){}"。关于这一点我们有点紧张。因为如果你没读过这篇博客，甚至可能即使读过了，也很容易忽略这种行为的改变，尤其是因为大多数人根本没有意识到这种自定义空检查的存在。
 
 ------
 
-[1] We do this in the editor only. This is why when you call GetComponent() to query for a component that doesn't exist, that you see a C# memory allocation happening, because we are generating this custom warning string inside the newly allocated fake null object. This memory allocation does not happen in built games. This is a very good example why if you are profiling your game, you should always profile the actual standalone player or mobile player, and not profile the editor, since we do a lot of extra security / safety / usage checks in the editor to make your life easier, at the expense of some performance. When profiling for performance and memory allocations, never profile the editor, always profile the built game.
+> [1] We do this in the editor only. This is why when you call GetComponent() to query for a component that doesn't exist, that you see a C# memory allocation happening, because we are generating this custom warning string inside the newly allocated fake null object. This memory allocation does not happen in built games. This is a very good example why if you are profiling your game, you should always profile the actual standalone player or mobile player, and not profile the editor, since we do a lot of extra security / safety / usage checks in the editor to make your life easier, at the expense of some performance. When profiling for performance and memory allocations, never profile the editor, always profile the built game.
 
 我们只在编辑器模式中这样做。这就是为什么当调 GetComponent()查询一个不存在的Component时，你会看到发生C#内存分配，因为我们在新分配的"fake null object"中生成了自定义警告字符串。这种内存分配不会在构建的游戏中发生（应该指已经出包的版本）。这是一个很好的例子，说明了为什么如果你要对游戏进行性能分析，你应该始终对实际的独立播放模式或移动的播放模式下进行性能分析（？），而不是在编辑器模式下进行性能分析，因为我们在编辑器模式中做了很多额外的安全/保护/使用检查，让你用起来更方柏霓，但代价是一些性能损耗。当进行性能和内存分配分析时，不要对编辑器进行分析，而应该对构建的游戏进行分析。
 
 ------
 
-[2] This is true not only for GameObject, but everything that derives from UnityEngine.Object
+> [2] This is true not only for GameObject, but everything that derives from UnityEngine.Object
 
 这发生在所有派生自UnityEngine.Object的对象上
 
 ------
 
-[3] Fun story: I ran into this while optimising GetComponent<T>() performance, and while implementing some caching for the transform component I wasn't seeing any performance benefits. Then [@jonasechterhoff](https://twitter.com/jonasechterhoff) looked at the problem, and came to the same conclusion. The caching code looks like this:
+> [3] Fun story: I ran into this while optimising GetComponent<T>() performance, and while implementing some caching for the transform component I wasn't seeing any performance benefits. Then [@jonasechterhoff](https://twitter.com/jonasechterhoff) looked at the problem, and came to the same conclusion. The caching code looks like this:
 
 ```c#
 private Transform m_CachedTransform
@@ -108,9 +108,9 @@ public Transform transform
 }
 ```
 
-Turns out two of our own engineers missed that the null check was more expensive than expected, and was the cause of not seeing any speed benefit from the caching. This led to the "well if even we missed it, how many of our users will miss it?", which results in this blogpost :)
+> Turns out two of our own engineers missed that the null check was more expensive than expected, and was the cause of not seeing any speed benefit from the caching. This led to the "well if even we missed it, how many of our users will miss it?", which results in this blogpost :)
 
-有趣的故事：作者在给GetComponent<T>()方法做优化时，在给Transform做缓存时并没有看到预想的缓存优化，错误代码如上所示。也是这篇博客诞生的原因。
+趣闻：作者在给GetComponent<T>()方法做优化时，在给Transform做缓存时并没有看到预想的缓存优化，错误代码如上所示。也是这篇博客诞生的原因。
 
 ------
 
