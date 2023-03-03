@@ -1,9 +1,7 @@
 ---
-title: [译]Unity博客《custom == operator,should we keep it?》
-tags: ["原理"]
+title: 译：Unity博客《custom == operator,should we keep it》
+tags: ["原理","GC"]
 ---
-
-
 
 这是一篇解释了“Unity为什么要使用自定义的==运算符，以及这样做导致的结果”的博客。
 
