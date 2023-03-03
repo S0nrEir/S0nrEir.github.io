@@ -3,9 +3,11 @@ title: 译：Unity博客《custom == operator,should we keep it》
 tags: ["原理","GC"]
 ---
 
-这是一篇解释了“Unity为什么要使用自定义的==运算符，以及这样做导致的结果”的博客。
+偶然看到一篇回答[unity的垃圾回收和c#的垃圾回收是同一个吗？ - 问渠的回答 - 知乎](https://www.zhihu.com/question/569461232/answer/2853602027)
 
-简译顺便学习。
+觉得很有意思，简译顺便学习。
+
+这是一篇解释了“Unity为什么要使用自定义的==运算符，以及这样做导致的结果”的博客。
 
 原文地址：[**Custom == operator, should we keep it?**](https://blog.unity.com/technology/custom-operator-should-we-keep-it)
 
