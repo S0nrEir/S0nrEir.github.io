@@ -100,7 +100,8 @@ Unity API 提供了几种访问或处理纹理数据的方法。如果两者都�
 - 3.54 ms - Graphics.CopyTexture(readableSource, readableTarget) 
 - 2.87 ms - foreach(mip) SetPixelData<byte>(mip, GetPixelData<byte>(mip)) \
 - 2.87 ms - LoadRawTextureData(source.GetRawTextureData<byte>()) 
-- 0.00 ms - Graphics.ConvertTexture(source, target) 0.00 毫秒 - Graphics.CopyTexture(nonReadableSource, target)
+- 0.00 ms - Graphics.ConvertTexture(source, target) 
+- 0.00 毫秒 - Graphics.CopyTexture(nonReadableSource, target)
 
 #### Plasma纹理
 
