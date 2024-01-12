@@ -1,6 +1,6 @@
 ---
-title: 【译】Unity博客《Accessing texture data efficiently》
-tags: ["翻译","纹理","API"]
+title: Jenkins自动化构建流程记录
+tags: ["Jenkins","版本"]
 ---
 
 原文链接：[Accessing texture data efficiently](https://blog.unity.com/engine-platform/accessing-texture-data-efficiently)
