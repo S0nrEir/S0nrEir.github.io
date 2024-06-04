@@ -1,5 +1,5 @@
 ---
-title: [译]关于Unity增量构建和AssetBundle哈希
+title: 译：关于Unity增量构建和AssetBundle哈希
 tags: ["AssetBundle"]
 
 ---
