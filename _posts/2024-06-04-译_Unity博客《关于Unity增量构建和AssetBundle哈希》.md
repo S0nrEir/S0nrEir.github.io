@@ -1,5 +1,5 @@
 ---
-title:[译]关于Unity增量构建和AssetBundle哈希
+title: [译]关于Unity增量构建和AssetBundle哈希
 tags: ["AssetBundle"]
 
 ---
@@ -137,7 +137,7 @@ AssetBundle哈希值基于AssetBundle构建的输入，而不是构建的输出�
 
 对于脚本类型，还会对类名、命名空间和程序集进行哈希。
 
-这个哈希值的目的是检测在AssetBundle中使用的任何对象是否有较新的序列化格式。例如向MonoScript添加新字段或更新到改变了某些内置对象的Unity新版本。序列化格式的改变意味着应当重新生成AssetBundle，以反映这些对象最新的序列化方案。Unity尽其最大努力提供对旧序列化方案的向后兼容性，例如当TypeTrees包含在AssetBundle中时，但通常最好是如果任何类型改变，为了性能和兼容性，都对内容进行重建。
+这个哈希值的目的是检测在AssetBundle中使用的任何对象是否有较新的序列化格式。例如向MonoScript添加新字段或更新到改变了某些内置对象的Unity新版本。序列化格式的改变意味着应当重新生成AssetBundle，以反映这些对象最新的序列化情况。Unity尽其最大努力提供对旧序列化方案的向后兼容性，例如当TypeTrees包含在AssetBundle中时，但通常最好是如果任何类型改变，为了性能和兼容性，都对内容进行重建。
 
 警告：这个TypeTree哈希值不是AssetBundle哈希值的一部分。所以虽然这个哈希值的改变可以强制进行增量构建，但它并不强制改变AssetBundle的整体哈希值。这也是AssetBundle哈希值不是跟踪文件版本的理想值的原因之一。
 
