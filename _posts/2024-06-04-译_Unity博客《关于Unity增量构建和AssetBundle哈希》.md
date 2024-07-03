@@ -323,3 +323,278 @@ Scriptable Build Pipeline（由 Addressables 使用）和 [Multi-process form of
 希望这个关于 AssetBundle 增量构建支持的详尽讨论对于使用 BuildPipeline.BuildAssetBundles() 管理 AssetBundles 有所帮助。通过 Addressables 可用的实现和 2023 年的改进解决了“哈希冲突”的风险。并且 BuildAssetBundleOptions.UseContentHash 可用在 2022 年更近期的版本。但是旧版本的 Unity 和 BuildPipeline.BuildAssetBundles() 都还在广泛使用。虽然许多项目已经成功使用这个旧的 API 来部署内容，但是了解哈希冲突的风险可以帮助避免一些潜在的陷阱。
 
 们也希望，通过将此发表在论坛上，社区将参与其中，并分享一些处理增量构建和 AssetBundle 缓存的技巧和最佳实践。
+
+---
+
+> I've also prepared a demonstration script to help make the rather technical text a bit more concrete.
+>
+> It has only had some mild testing, so consider that there are lots of disclaimers here that putting it into production is at your own risk. But if you detect any bugs or make improvements I would like to hear about it in this thread, and I hope it can be very helpful.
+
+我也准备了一个演示脚本，以帮助让这些较为技术性的文本变得更加具体。这个脚本只进行了一些轻度的测试，所以请注意这里有很多免责声明，将它投入生产环境是你自己的风险。但是，如果你发现任何错误或者进行了改进，我希望可以在这个帖子中听到你的反馈，我希望它能够带给你很大的帮助。
+
+```c#
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
+using System.Text;
+using UnityEditor;
+using UnityEngine;
+ 
+// 这是一个示例代码，展示了如何利用现有的Unity和System API来监控AssetBundle增量构建的输出，
+// 包括检测"哈希冲突"。该代码已经在2021.3版本中进行了测试，如果发现任何问题，请在发布此帖的Unity论坛中报告。
+// 如果觉得有用，你可以随意将其整合到你自己的构建脚本中。
+// 使用方法：根据你自己的构建布局更新脚本。然后运行菜单项 "Test Repro/Build Asset Bundles"。
+// 输出信息会被写入到Console窗口。
+ 
+public class BuildBundles
+{
+    static AssetBundleBuild[] GetBundleDefinitions()
+    {
+        // Adjust this method according to your own Assets and desired build layout
+ 
+#if TRUE
+        AssetBundleBuild[] bundleDefinitions = new AssetBundleBuild[2];
+ 
+        bundleDefinitions[0].assetBundleName = "bundle_prefab";
+        bundleDefinitions[0].assetNames = new string[]
+        {
+            "Assets/MyPrefab.prefab",
+        };
+ 
+        bundleDefinitions[1].assetBundleName = "bundle_sobject";
+        bundleDefinitions[1].assetNames = new string[]
+        {
+            "Assets/MyScriptableObject.Asset"
+        };
+ 
+        return bundleDefinitions;
+#else
+        //这个调用可以用来构建在Inspector/AssetDatabase定义的AssetBundles。
+        return ContentBuildInterface.GenerateAssetBundleBuilds();
+#endif
+    }
+ 
+    [MenuItem("Test Repro/Build Asset Bundles")]
+    static void BuildAssetBundles()
+    {
+        string buildPath = Application.streamingAssetsPath;
+ 
+        // 构建AssetBundles
+        // 为了测试，你可以试验再次调用它，例如，在修改了ScriptableObject代码后，看看哪些部分重新构建了
+        // 每次包改变时，都应进行一次新的玩家构建
+ 
+        var bundleDefinitions = GetBundleDefinitions();
+        var reporter = new IncrementalBuildReporter(buildPath);
+        reporter.ReportToConsole();
+ 
+        Directory.CreateDirectory(buildPath);
+        
+        //注意：BuildAssetBundleOptions.ForceRebuildAssetBundle没有被显式指定，所以可以查看增量构建的结果
+        var manifest = BuildPipeline.BuildAssetBundles(buildPath,
+            bundleDefinitions,
+            BuildAssetBundleOptions.AssetBundleStripUnityVersion,
+            BuildTarget.StandaloneWindows64);
+ 
+        if (manifest != null)
+        {
+            reporter.DetectBuildResults();
+            reporter.ReportToConsole();
+        }
+        else
+        {
+            Debug.Log("Build failed");
+        }
+    }
+}
+ 
+struct BundleBuildInfo
+{
+    public Hash128 bundleHash; // 这俩都由unity计算
+    public uint crc;           // 
+    public DateTime timeStamp; //可以用于检测bundle是否被重建或使用了前一版本的文件（bundle）
+    public string contentHash; // MD5, 在CRC发生改变时改变
+ 
+    public override string ToString()
+    {
+        return $"Unity hash: {bundleHash} Content MD5: {contentHash} CRC: {crc.ToString("X8")} Write time: {timeStamp}";
+    }
+}
+ 
+public class IncrementalBuildReporter
+{
+    Dictionary<string, BundleBuildInfo> m_previousBuildInfo; // map from path to BuildInfo
+    string m_buildPath; // Typically a relative path within the Unity project
+    string m_manifestAssetBundlePath;
+ 
+    StringBuilder m_report;
+ 
+    public IncrementalBuildReporter(string buildPath)
+    {
+        m_report = new StringBuilder();
+        m_buildPath = buildPath;
+        m_previousBuildInfo = new();
+ 
+        var directoryName = Path.GetFileName(buildPath);
+ 
+        // Special AssetBundle that stores the AssetBundleManifest follows this naming convention
+        m_manifestAssetBundlePath = buildPath + "/" + directoryName;
+ 
+        if (!File.Exists(m_manifestAssetBundlePath))
+        {
+            // Expected on the first build
+            m_report.AppendLine("No Previous Build Found");
+            return;
+        }
+ 
+        m_report.AppendLine("Collecting info from previous build");
+        CollectBuildInfo(m_previousBuildInfo);
+    }
+ 
+    public void ReportToConsole()
+    {
+        Debug.Log(m_report.ToString());
+        m_report.Clear();
+    }
+ 
+    private void CollectBuildInfo(Dictionary<string, BundleBuildInfo> bundleInfos)
+    {
+        var manifestAssetBundle = AssetBundle.LoadFromFile(m_manifestAssetBundlePath);
+        try
+        {
+            var assetBundleManifest = manifestAssetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
+ 
+            var allBundles = assetBundleManifest.GetAllAssetBundles();
+            foreach (var bundleRelativePath in allBundles)
+            {
+                // bundle is the AssetBundle's path relative to the root build folder
+                var bundlePath = m_buildPath + "/" + bundleRelativePath;
+                if (!File.Exists(bundlePath))
+                {
+                    // Bundles may have been manually erased or moved after the build
+                    m_report.AppendLine("AssetBundle " + bundlePath + " is missing from disk");
+                    continue;
+                }
+ 
+                // Get the CRC from the bundle's .manifest file
+                if (!BuildPipeline.GetCRCForAssetBundle(bundlePath, out uint crc))
+                {
+                    m_report.AppendLine("Failed to read CRC from manifest file of " + bundlePath);
+                    continue;
+                }
+ 
+                var fileInfo = new FileInfo(bundlePath);
+                var bundleInfo = new BundleBuildInfo()
+                {
+                    bundleHash = assetBundleManifest.GetAssetBundleHash(bundleRelativePath), //
+                    crc = crc,
+                    timeStamp = fileInfo.CreationTime,
+                    contentHash = GetMD5HashFromAssetBundle(bundlePath)
+                };
+ 
+                bundleInfos.Add(bundleRelativePath, bundleInfo);
+            }
+        }
+        finally
+        {
+            manifestAssetBundle.Unload(true);
+        }
+    }
+ 
+    public void DetectBuildResults()
+    {
+        m_report.AppendLine().AppendLine("Collecting results of new Build:");
+ 
+        var newBuildInfo = new Dictionary<string, BundleBuildInfo>();
+        CollectBuildInfo(newBuildInfo);
+ 
+        foreach (KeyValuePair<string, BundleBuildInfo> dictionaryEntry in newBuildInfo)
+        {
+            string bundlePath = dictionaryEntry.Key;
+            BundleBuildInfo newBundleInfo = dictionaryEntry.Value;
+ 
+            if (m_previousBuildInfo.TryGetValue(bundlePath, out BundleBuildInfo previousBundleInfo))
+            {
+                if (previousBundleInfo.timeStamp == newBundleInfo.timeStamp)
+                {
+                    // Bundle was not rebuilt.  Do some sanity checking just in case the timestamp is misleading
+                    if (previousBundleInfo.crc != newBundleInfo.crc ||
+                        previousBundleInfo.contentHash != newBundleInfo.contentHash)
+                    {
+                        m_report.AppendLine($"*UNEXPECTED* [Timestamp match with new content]: {bundlePath}\n\tNow:  {newBundleInfo} \n\tWas: {previousBundleInfo}");
+                    }
+                    else
+                    {
+                        // Incremental build decided not to build this bundle
+                        m_report.AppendLine($"[Not rebuilt]: {bundlePath}\n\t{newBundleInfo}");
+                    }
+                }
+                else if (previousBundleInfo.bundleHash == newBundleInfo.bundleHash)
+                {
+                    if (previousBundleInfo.crc != newBundleInfo.crc)
+                    {
+                        // Hash is the same, but according to the CRC, the bundle has new content, so this is a "hash conflict".
+                        // This is problematic if the hash is used to distinguish different versions of the AssetBundle (e.g. along with the AssetBundle cache)
+                        // If this occurs be wary of releasing this build.
+                        m_report.AppendLine($"*WARNING* [New CRC content, but unchanged hash]: {bundlePath}\n\tNow: {newBundleInfo}\n\tWas: {previousBundleInfo}");
+                    }
+                    else if (previousBundleInfo.contentHash != newBundleInfo.contentHash)
+                    {
+                        // Normally shouldn't happen, because the CRC check above should also trigger
+                        m_report.AppendLine($"*WARNING* [New file content, unchanged hash]: {bundlePath}");
+                    }
+                    else
+                    {
+                        // Expected with ForceRebuildAssetBundle or if Unity is being conservative and rebuilding something that might have changed
+                        m_report.AppendLine($"[Rebuilt, identical content]: {bundlePath}\n\tNow: {newBundleInfo}\n\tWas: {previousBundleInfo}");
+                    }
+                }
+                else
+                {
+                    if (previousBundleInfo.contentHash == newBundleInfo.contentHash)
+                    {
+                        // Expected if the incremental build heuristic has changed, e.g. when upgrading Unity
+                        m_report.AppendLine($"[Rebuilt, new hash produced identical content]:{bundlePath}\n\tNow: {newBundleInfo}\n\tWas: {previousBundleInfo}");
+                    }
+                    else
+                    {
+                        // The normal case for a AssetBundle that required rebuild
+                        m_report.AppendLine($"[Rebuilt, new content]: {bundlePath}\n\tNow: {newBundleInfo}\n\tWas: {previousBundleInfo}");
+                    }
+                }
+ 
+                // Clear it out so that we can detect obsolete AssetBundles
+                m_previousBuildInfo.Remove(bundlePath);
+            }
+            else
+            {
+                m_report.AppendLine($"[Brand new]: {bundlePath}\n\t{newBundleInfo}");
+            }
+        }
+ 
+        // 此结构中剩余的任何内容都没有与新构建的AssetBundle匹配（因此可能可以被擦除）。
+        foreach (KeyValuePair<string, BundleBuildInfo> dictionaryEntry in m_previousBuildInfo)
+        {
+            m_report.AppendLine($"[Obsolete bundle]: {dictionaryEntry.Key}\n\t{dictionaryEntry.Value}");
+        }
+    }
+ 
+    private static string GetMD5HashFromAssetBundle(string fileName)
+    {
+        // 注意：如果压缩方式变动（例如，为了AssetBundle缓存做的LZMA -> LZ4转换），文件内容将会改变
+        // 提示：若你使用哈希来追踪AssetBundle的版本，那么我们推荐使用AssetBundleStripUnityVersion标志。
+        FileStream file = new FileStream(fileName, FileMode.Open);
+ 
+        var md5 = MD5.Create();
+        byte[] hash = md5.ComputeHash(file);
+        file.Close();
+ 
+        // Convert to string
+        var sb = new StringBuilder();
+        for (int i = 0; i < hash.Length; i++)
+            sb.Append(hash[i].ToString("x2"));
+        return sb.ToString();
+    }
+}
+```
+
